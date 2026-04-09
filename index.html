@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RS → VRay Material Converter</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg:        #111214;
+    --bg2:       #16181c;
+    --bg3:       #1c1f24;
+    --border:    #2a2d33;
+    --border2:   #363a42;
+    --rs:        #e8622a;
+    --rs-dim:    #7a3318;
+    --vray:      #3a8fd4;
+    --vray-dim:  #1a4a72;
+    --text:      #c8cdd6;
+    --text-dim:  #5a6072;
+    --text-hi:   #eef0f4;
+    --green:     #4caf7d;
+    --yellow:    #d4a843;
+    --purple:    #9b6fd4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    height: 44px;
+  }
+  .header-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-right: 24px;
+  }
+  .header-logo span { color: var(--rs); }
+  .header-logo span.vray { color: var(--vray); }
+  .header-tabs { display: flex; height: 100%; }
+  .header-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 0 16px;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    height: 100%;
+  }
+  .header-tab:hover { color: var(--text); }
+  .header-tab.active { color: var(--text-hi); border-bottom-color: var(--rs); }
+  .header-right {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  .body { display: flex; height: calc(100vh - 44px); }
+
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sidebar-section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 12px 14px 6px;
+  }
+  .shader-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    transition: background 0.1s;
+    border-left: 2px solid transparent;
+  }
+  .shader-btn:hover { background: var(--bg3); }
+  .shader-btn.active { background: var(--bg3); color: var(--text-hi); border-left-color: var(--rs); }
+  .shader-btn .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--rs); flex-shrink: 0; }
+  .sidebar-divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .toolbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .toolbar-shader-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; color: var(--text-hi); }
+  .arrow { color: var(--text-dim); font-size: 16px; }
+  .search-wrap { margin-left: auto; position: relative; }
+  .search-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 4px 10px 4px 28px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    width: 200px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--border2); }
+  .search-input::placeholder { color: var(--text-dim); }
+  .search-icon { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 12px; pointer-events: none; }
+  .filter-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 4px 10px;
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.1s;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--border2); color: var(--text); }
+  .filter-btn.active { background: var(--bg2); }
+
+  .table-wrap { flex: 1; overflow-y: auto; }
+  .table-wrap::-webkit-scrollbar { width: 6px; }
+  .table-wrap::-webkit-scrollbar-track { background: var(--bg2); }
+  .table-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  .section { border-bottom: 1px solid var(--border); }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .section-header:hover { background: #1f2229; }
+  .section-title { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
+  .section-count { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; padding: 0 4px; }
+  .chevron { margin-left: auto; color: var(--text-dim); font-size: 10px; transition: transform 0.2s; }
+  .section.collapsed .chevron { transform: rotate(-90deg); }
+  .section.collapsed .section-body { display: none; }
+
+  .param-table { width: 100%; border-collapse: collapse; }
+  .param-table thead th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 6px 20px;
+    text-align: left;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .param-table thead th.rs-col { color: var(--rs); }
+  .param-table thead th.vray-col { color: var(--vray); }
+
+  .param-row { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  .param-row:hover { background: var(--bg3); }
+  .param-row.hidden { display: none; }
+  .param-table td { padding: 9px 20px; vertical-align: top; line-height: 1.5; }
+
+  .col-rs { width: 22%; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--rs); font-weight: 500; }
+  .col-type { width: 8%; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); }
+  .col-vray { width: 22%; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--vray); font-weight: 500; }
+  .col-notes { width: 48%; font-size: 12px; color: var(--text); line-height: 1.55; }
+
+  .tag { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 2px; padding: 1px 5px; margin-right: 4px; vertical-align: middle; }
+  .tag-exact   { background: #1a3d26; color: var(--green); }
+  .tag-invert  { background: #2d2616; color: var(--yellow); }
+  .tag-manual  { background: #2a1f3d; color: var(--purple); }
+  .tag-na      { background: #1e2128; color: var(--text-dim); }
+  .none-text   { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); font-style: italic; }
+
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 20px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .legend-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-right: 4px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo"><span>RS</span> → <span class="vray">VRay</span> &nbsp;Material Reference</div>
+  <div class="header-tabs">
+    <button class="header-tab active">Parameter Map</button>
+  </div>
+  <div class="header-right">v0.1 &nbsp;·&nbsp; Industrial Design Focus</div>
+</div>
+
+<div class="body">
+  <div class="sidebar">
+    <div class="sidebar-section-label">Redshift Shader</div>
+    <button class="shader-btn active" onclick="selectShader('standard')" data-shader="standard"><span class="dot"></span> Standard Material</button>
+    <button class="shader-btn" onclick="selectShader('carpaint')" data-shader="carpaint"><span class="dot"></span> Car Paint</button>
+    <button class="shader-btn" onclick="selectShader('incandescent')" data-shader="incandescent"><span class="dot"></span> Incandescent</button>
+    <button class="shader-btn" onclick="selectShader('materialblender')" data-shader="materialblender"><span class="dot"></span> Material Blender</button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label" style="color:#444;font-size:9px;">Coming Soon</div>
+    <button class="shader-btn" style="opacity:0.35;cursor:not-allowed;"><span class="dot" style="background:var(--text-dim)"></span> Standard Volume</button>
+    <button class="shader-btn" style="opacity:0.35;cursor:not-allowed;"><span class="dot" style="background:var(--text-dim)"></span> OpenPBR</button>
+    <button class="shader-btn" style="opacity:0.35;cursor:not-allowed;"><span class="dot" style="background:var(--text-dim)"></span> FastSSS2</button>
+  </div>
+
+  <div class="main">
+    <div class="toolbar">
+      <span class="toolbar-shader-name" id="shader-title-rs">RS Standard Material</span>
+      <span class="arrow">→</span>
+      <span class="toolbar-shader-name" id="shader-title-vray" style="color:var(--vray)">VRayMtl</span>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" type="text" placeholder="Filter parameters..." id="search-input" oninput="filterRows(this.value)">
+      </div>
+      <button class="filter-btn" onclick="toggleFilter('invert')" id="filter-invert">⚡ Inverted</button>
+      <button class="filter-btn" onclick="toggleFilter('manual')" id="filter-manual">⚠ Manual</button>
+    </div>
+
+    <div class="table-wrap" id="table-wrap"></div>
+
+    <div class="legend">
+      <span class="legend-label">Key:</span>
+      <div class="legend-item"><span class="tag tag-exact">Exact</span><span style="font-size:11px;color:var(--text-dim)">Direct equivalent</span></div>
+      <div class="legend-item"><span class="tag tag-invert">Invert</span><span style="font-size:11px;color:var(--text-dim)">Glossiness ↔ Roughness (1−x)</span></div>
+      <div class="legend-item"><span class="tag tag-manual">Manual</span><span style="font-size:11px;color:var(--text-dim)">Requires workflow change</span></div>
+      <div class="legend-item"><span class="tag tag-na">N/A</span><span style="font-size:11px;color:var(--text-dim)">No direct equivalent</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHADERS = {
+  standard: {
+    rs: 'RS Standard Material', vray: 'VRayMtl',
+    sections: [
+      { title: 'Base / Diffuse', rows: [
+        { rs:'Base Color',        type:'color', vray:'Diffuse Color',              tag:'exact',  notes:'Direct equivalent. VRay diffuse is also dimmed by reflection strength.' },
+        { rs:'Base Weight',       type:'float', vray:'Diffuse Amount',             tag:'exact',  notes:'Multiplier on diffuse color. Maps directly.' },
+        { rs:'Metalness',         type:'float', vray:'Metalness',                  tag:'exact',  notes:'Direct equivalent. Both use 0–1 range. Intermediate values are non-physical in both.' },
+        { rs:'Diffuse Roughness', type:'float', vray:'Roughness Amount',           tag:'exact',  notes:'Both simulate Oren-Nayar retroreflection at higher values. Direct mapping.' },
+        { rs:'Opacity',           type:'tex',   vray:'Opacity Map',                tag:'exact',  notes:'White = opaque, black = transparent. VRay adds Opacity Mode: Stochastic (filtered) or Clip (fast cutout, equivalent to RS Sprite Node).' },
+      ]},
+      { title: 'Reflection', rows: [
+        { rs:'Reflection Weight',    type:'float', vray:'Reflection Color Amount',  tag:'manual', notes:'RS uses a weight float. VRay uses Reflection Color brightness as intensity. Set VRay Reflection Color to white and use Amount to match.' },
+        { rs:'Reflection Color',     type:'color', vray:'Reflection Color',         tag:'exact',  notes:'Direct equivalent. Both tint the reflection and dim the diffuse layer.' },
+        { rs:'Reflection Roughness', type:'float', vray:'Reflection Glossiness',    tag:'invert', notes:'RS: 0=mirror, 1=rough. VRay: 1=mirror, 0=rough. Formula: VRay Glossiness = 1 − RS Roughness. Enable "Use Roughness" in VRay to work in roughness space directly.' },
+        { rs:'Fresnel Type / IOR',   type:'float', vray:'Fresnel IOR',              tag:'exact',  notes:'Enable "Use Fresnel" in VRayMtl. IOR values map directly.' },
+        { rs:'Anisotropy',           type:'float', vray:'Anisotropy',               tag:'exact',  notes:'Both use −1 to +1 range. Direct mapping.' },
+        { rs:'Anisotropy Rotation',  type:'float', vray:'Anisotropy Rotation',      tag:'exact',  notes:'Both use 0–1 (0=0°, 1=360°). Direct mapping.' },
+        { rs:'BRDF (GGX default)',   type:'enum',  vray:'BRDF Type → GGX',         tag:'exact',  notes:'RS Standard Material uses GGX by default. Set VRayMtl BRDF Type to GGX. GGX Tail Falloff in VRay has no direct RS equivalent — leave at default.' },
+      ]},
+      { title: 'Thin Film', rows: [
+        { rs:'Thin Film Weight',    type:'float', vray:'Enable Thin Film',          tag:'manual', notes:'RS uses a weight float. VRay uses a checkbox + Amount. Enable Thin Film, then adjust Min Thickness to match RS look.' },
+        { rs:'Thin Film Thickness', type:'float', vray:'Min Thickness (nm)',        tag:'exact',  notes:'Both in nanometers. Direct value mapping.' },
+        { rs:'Thin Film IOR',       type:'float', vray:'Thin Film IOR',             tag:'exact',  notes:'Direct equivalent.' },
+      ]},
+      { title: 'Transmission / Refraction', rows: [
+        { rs:'Transmission Weight', type:'float', vray:'Refraction Color Amount',   tag:'manual', notes:'RS uses a weight. VRay uses Refraction Color brightness. Set Refraction Color to white and adjust Amount, or use a grey value equivalent to RS Transmission Weight.' },
+        { rs:'Transmission Color',  type:'color', vray:'Fog Color',                 tag:'manual', notes:'RS tints transmitted light directly. VRay Fog Color is depth-dependent absorption. Set Fog Depth to match scene scale.' },
+        { rs:'IOR (Transmission)',  type:'float', vray:'Refraction IOR',            tag:'exact',  notes:'Direct equivalent. Same IOR scale.' },
+        { rs:'Abbe Number',         type:'float', vray:'Dispersion Abbe',           tag:'exact',  notes:'Direct equivalent. Enable Dispersion in VRay first.' },
+        { rs:'Thin Walled',         type:'bool',  vray:'Thin-Walled',              tag:'exact',  notes:'Direct equivalent. Both disable volumetrics and treat surface as infinitely thin shell.' },
+        { rs:'Transmission Depth',  type:'float', vray:'Fog Depth (cm)',            tag:'manual', notes:'Inverse relationship: larger RS Depth = increase VRay Fog Depth. Units differ — dial to match visual result.' },
+      ]},
+      { title: 'Subsurface Scattering', rows: [
+        { rs:'Subsurface Weight',     type:'float', vray:'SSS Amount',              tag:'manual', notes:'VRay SSS lives in Refraction > Translucency rollout. Set Translucency to SSS mode first, then SSS Amount is the functional equivalent.' },
+        { rs:'Subsurface Color',      type:'color', vray:'SSS Color',               tag:'exact',  notes:'Direct equivalent.' },
+        { rs:'Subsurface Radius',     type:'color', vray:'Scatter Radius',          tag:'exact',  notes:'Both use RGB channels for per-channel scatter distance. VRay in cm — match RS scene units.' },
+        { rs:'Subsurface Scale',      type:'float', vray:'Scale (cm)',              tag:'exact',  notes:'Global multiplier on scatter radius. Direct equivalent.' },
+        { rs:'SSS Mode (Random Walk)',type:'enum',  vray:'Translucency SSS + BF GI',tag:'manual', notes:'RS Random Walk = most accurate. VRay equivalent: SSS mode + Multiple Scattering + Brute Force GI (min 16 bounces). For speed, use VRayFastSSS2 as a dedicated SSS material instead.' },
+      ]},
+      { title: 'Coat', rows: [
+        { rs:'Coat Weight',       type:'float', vray:'Coat Amount',               tag:'exact',  notes:'Direct equivalent. 0=no coat, 1=full coat.' },
+        { rs:'Coat Color',        type:'color', vray:'Coat Color',                tag:'exact',  notes:'Direct equivalent. Tints underlying layers but NOT the coat specular highlight (always white in both).' },
+        { rs:'Coat Roughness',    type:'float', vray:'Coat Glossiness',           tag:'invert', notes:'RS roughness → VRay glossiness. Formula: Coat Glossiness = 1 − RS Coat Roughness.' },
+        { rs:'Coat IOR',          type:'float', vray:'Coat IOR',                  tag:'exact',  notes:'Direct equivalent.' },
+        { rs:'Coat Affect Color', type:'float', vray:'Coat Darkening',            tag:'manual', notes:'Similar intent — RS tints base, VRay controls absorption darkening. Dial to visual match.' },
+        { rs:'Coat Normal',       type:'tex',   vray:'Coat Bump Map',             tag:'exact',  notes:'Both support independent normal/bump maps for the coat layer.' },
+      ]},
+      { title: 'Sheen', rows: [
+        { rs:'Sheen Weight',    type:'float', vray:'Sheen Amount',               tag:'exact',  notes:'Direct equivalent.' },
+        { rs:'Sheen Color',     type:'color', vray:'Sheen Color',                tag:'exact',  notes:'Direct equivalent.' },
+        { rs:'Sheen Roughness', type:'float', vray:'Sheen Glossiness',           tag:'invert', notes:'Formula: Sheen Glossiness = 1 − RS Sheen Roughness.' },
+      ]},
+      { title: 'Emission', rows: [
+        { rs:'Emission Color',  type:'color', vray:'Self-Illumination',          tag:'exact',  notes:'Direct equivalent. Enable Self-Illumination GI in VRay for GI contribution.' },
+        { rs:'Emission Weight', type:'float', vray:'Self-Illum Amount',          tag:'exact',  notes:'Direct multiplier equivalent.' },
+      ]},
+      { title: 'Geometry / Surface', rows: [
+        { rs:'Bump Map',     type:'tex',  vray:'Bump Map',                       tag:'exact',  notes:'Direct equivalent. Both support greyscale bump and normal maps.' },
+        { rs:'Normal Type',  type:'enum', vray:'Map Type',                       tag:'exact',  notes:'Tangent/Object/World space options exist in both. Most common case is a direct match.' },
+        { rs:'Opacity',      type:'tex',  vray:'Opacity Map',                   tag:'exact',  notes:'White = opaque, black = transparent in both.' },
+        { rs:'Thin Walled',  type:'bool', vray:'Thin-Walled',                  tag:'exact',  notes:'Direct equivalent.' },
+      ]},
+    ]
+  },
+
+  carpaint: {
+    rs: 'RS Car Paint', vray: 'VRayCarPaint2Mtl',
+    sections: [
+      { title: 'Base Layer', rows: [
+        { rs:'Base Color',         type:'color', vray:'Base Color',              tag:'exact',  notes:'Direct equivalent.' },
+        { rs:'Base Layer Specular', type:'float', vray:'Base Reflection',        tag:'exact',  notes:'Controls reflectivity of the base pigment layer.' },
+        { rs:'Specular Roughness', type:'float', vray:'Base Glossiness',         tag:'invert', notes:'Formula: Base Glossiness = 1 − RS Roughness.' },
+        { rs:'Bump Map',           type:'tex',   vray:'Bump Map',                tag:'exact',  notes:'Base layer bump. Direct equivalent.' },
+      ]},
+      { title: 'Flake Layer', rows: [
+        { rs:'Flake Color',       type:'color', vray:'Flake Color',              tag:'exact',  notes:'Direct equivalent.' },
+        { rs:'Flake Size',        type:'float', vray:'Flake Size',               tag:'exact',  notes:'Direct equivalent.' },
+        { rs:'Flake Density',     type:'float', vray:'Flake Density',            tag:'exact',  notes:'Direct equivalent.' },
+        { rs:'Flake Orientation', type:'float', vray:'Flake Orientation',        tag:'exact',  notes:'Direct equivalent. 0=aligned to surface, 1=random.' },
+        { rs:'Flake Glossiness',  type:'float', vray:'Flake Glossiness',         tag:'exact',  notes:'Direct equivalent (both in glossiness space).' },
+        { rs:'Flake Spread',      type:'float', vray:'Flake Orientation Tail',   tag:'exact',  notes:'Controls falloff of flake highlight. Direct equivalent.' },
+      ]},
+      { title: 'Clear Coat', rows: [
+        { rs:'Clear Coat IOR',   type:'float', vray:'Coat IOR',                 tag:'exact',  notes:'Direct equivalent.' },
+        { rs:'Coat Roughness',   type:'float', vray:'Coat Glossiness',          tag:'invert', notes:'Formula: Coat Glossiness = 1 − RS Coat Roughness.' },
+        { rs:'Coat Bump',        type:'tex',   vray:'Coat Bump Map',            tag:'exact',  notes:'Independent coat layer bump. Direct equivalent.' },
+      ]},
+    ]
+  },
+
+  incandescent: {
+    rs: 'RS Incandescent', vray: 'VRayLightMtl',
+    sections: [
+      { title: 'Emission', rows: [
+        { rs:'Color',               type:'color', vray:'Color',                  tag:'exact',  notes:'Direct equivalent. Texture connections work in both.' },
+        { rs:'Temperature',         type:'float', vray:'Temperature',            tag:'exact',  notes:'Both support blackbody temperature mode. Direct equivalent.' },
+        { rs:'Intensity Multiplier', type:'float', vray:'Color Multiplier',      tag:'exact',  notes:'Direct multiplier equivalent.' },
+        { rs:'Double Sided',        type:'bool',  vray:'Emit on Back Side',      tag:'exact',  notes:'Direct equivalent. Both control whether the back face emits.' },
+        { rs:'GI Ray Multiplier',   type:'float', vray:'Self-Illumination GI',   tag:'manual', notes:'RS has per-ray-type multipliers. VRay has a simple checkbox. For mesh light behaviour (direct + indirect), enable VRay Direct Illumination mode.' },
+      ]},
+    ]
+  },
+
+  materialblender: {
+    rs: 'RS Material Blender', vray: 'VRayBlendMtl',
+    sections: [
+      { title: 'Layering', rows: [
+        { rs:'Base Material',       type:'mtl', vray:'Base Material',            tag:'exact',  notes:'Direct equivalent. The bottom-most material in the stack.' },
+        { rs:'Layer 1–6 Material',  type:'mtl', vray:'Coat Material (1–9)',      tag:'exact',  notes:'VRayBlendMtl supports up to 9 coat slots vs RS 6. Otherwise direct equivalent.' },
+        { rs:'Layer Color / Mask',  type:'tex', vray:'Blend Amount',             tag:'exact',  notes:'White=layer wins, black=base wins. Texture map drives the blend. Direct equivalent.' },
+        { rs:'Blend Type',          type:'enum', vray:'Additive Mode',           tag:'manual', notes:'RS supports multiple blend modes. VRay only has Normal (default) and Additive. Non-standard RS blend types have no direct VRay equivalent — use Normal for physical accuracy.' },
+      ]},
+    ]
+  },
+};
+
+let activeShader  = 'standard';
+let activeFilters = new Set();
+let searchQuery   = '';
+
+function renderTable() {
+  const shader = SHADERS[activeShader];
+  document.getElementById('shader-title-rs').textContent   = shader.rs;
+  document.getElementById('shader-title-vray').textContent = shader.vray;
+  let html = '';
+  for (const section of shader.sections) {
+    html += `<div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-title">${section.title}</span>
+        <span class="section-count">${section.rows.length}</span>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <table class="param-table">
+          <thead><tr>
+            <th class="rs-col">RS Parameter</th>
+            <th>Type</th>
+            <th class="vray-col">VRay Parameter</th>
+            <th>Conversion Notes</th>
+          </tr></thead>
+          <tbody>`;
+    for (const row of section.rows) {
+      html += `<tr class="param-row" data-rs="${row.rs.toLowerCase()}" data-vray="${row.vray.toLowerCase()}" data-tag="${row.tag}">
+        <td class="col-rs"><code>${row.rs}</code></td>
+        <td class="col-type">${row.type}</td>
+        <td class="col-vray"><code>${row.vray}</code></td>
+        <td class="col-notes"><span class="tag tag-${row.tag}">${row.tag}</span> ${row.notes}</td>
+      </tr>`;
+    }
+    html += `</tbody></table></div></div>`;
+  }
+  document.getElementById('table-wrap').innerHTML = html;
+  applyFilters();
+}
+
+function selectShader(id) {
+  activeShader = id;
+  document.querySelectorAll('.shader-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-shader="${id}"]`).classList.add('active');
+  document.getElementById('search-input').value = '';
+  searchQuery = '';
+  activeFilters.clear();
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  renderTable();
+}
+
+function toggleSection(header) {
+  header.closest('.section').classList.toggle('collapsed');
+}
+
+function toggleFilter(tag) {
+  if (activeFilters.has(tag)) activeFilters.delete(tag);
+  else activeFilters.add(tag);
+  document.getElementById('filter-' + tag).classList.toggle('active');
+  applyFilters();
+}
+
+function filterRows(q) {
+  searchQuery = q.toLowerCase();
+  applyFilters();
+}
+
+function applyFilters() {
+  document.querySelectorAll('.param-row').forEach(row => {
+    const matchSearch = !searchQuery ||
+      row.dataset.rs.includes(searchQuery) ||
+      row.dataset.vray.includes(searchQuery) ||
+      row.textContent.toLowerCase().includes(searchQuery);
+    const matchFilter = activeFilters.size === 0 || activeFilters.has(row.dataset.tag);
+    row.classList.toggle('hidden', !(matchSearch && matchFilter));
+  });
+}
+
+renderTable();
+</script>
+</body>
+</html>
