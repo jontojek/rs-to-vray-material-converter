@@ -3,27 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RS → VRay · Standard Material Map</title>
+<title>VRay ↔ RS Material Reference</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
 
   :root {
-    --bg:        #111214;
-    --bg2:       #16181c;
-    --bg3:       #1c1f24;
-    --border:    #2a2d33;
-    --border2:   #363a42;
-    --rs:        #e8622a;
-    --rs-dim:    #7a3318;
-    --vray:      #3a8fd4;
-    --vray-dim:  #1a4a72;
-    --text:      #c8cdd6;
-    --text-dim:  #5a6072;
-    --text-hi:   #eef0f4;
-    --green:     #4caf7d;
-    --yellow:    #d4a843;
-    --purple:    #9b6fd4;
-    --red:       #d45a5a;
+    --bg:       #111214;
+    --bg2:      #16181c;
+    --bg3:      #1c1f24;
+    --border:   #2a2d33;
+    --border2:  #363a42;
+    --rs:       #e8622a;
+    --vray:     #3a8fd4;
+    --text:     #c8cdd6;
+    --text-dim: #5a6072;
+    --text-hi:  #eef0f4;
+    --green:    #4caf7d;
+    --yellow:   #d4a843;
+    --purple:   #9b6fd4;
+    --red:      #d45a5a;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,7 +35,6 @@
     overflow-x: hidden;
   }
 
-  /* ── HEADER ── */
   .header {
     background: var(--bg2);
     border-bottom: 1px solid var(--border);
@@ -45,7 +42,7 @@
     display: flex;
     align-items: center;
     height: 44px;
-    gap: 0;
+    gap: 14px;
   }
   .header-logo {
     font-family: 'IBM Plex Mono', monospace;
@@ -54,11 +51,37 @@
     letter-spacing: 0.12em;
     color: var(--text-dim);
     text-transform: uppercase;
-    margin-right: 28px;
     white-space: nowrap;
   }
-  .header-logo .rs   { color: var(--rs); }
-  .header-logo .vr   { color: var(--vray); }
+  .header-logo .rs { color: var(--rs); }
+  .header-logo .vr { color: var(--vray); }
+
+  .dir-toggle {
+    display: flex;
+    align-items: center;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .dir-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    padding: 5px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .dir-btn.d-vr { color: var(--vray); }
+  .dir-btn.d-rs { color: var(--rs); }
+  .dir-btn.active { background: var(--bg); color: var(--text-hi); }
+  .dir-sep { width: 1px; background: var(--border2); height: 28px; flex-shrink: 0; }
+
   .phase-badge {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 9px;
@@ -69,22 +92,21 @@
     color: var(--green);
     border-radius: 2px;
     padding: 2px 6px;
-    margin-right: auto;
+    margin-left: auto;
   }
   .header-right {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
     color: var(--text-dim);
     letter-spacing: 0.08em;
+    white-space: nowrap;
   }
 
-  /* ── BODY LAYOUT ── */
   .body { display: flex; height: calc(100vh - 44px); }
 
-  /* ── SIDEBAR ── */
   .sidebar {
-    width: 230px;
-    min-width: 230px;
+    width: 236px;
+    min-width: 236px;
     background: var(--bg2);
     border-right: 1px solid var(--border);
     display: flex;
@@ -121,8 +143,8 @@
     white-space: nowrap;
   }
   .nav-btn:hover  { background: var(--bg3); }
-  .nav-btn.active { background: var(--bg3); color: var(--text-hi); border-left-color: var(--rs); }
-  .nav-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rs); flex-shrink: 0; }
+  .nav-btn.active { background: var(--bg3); color: var(--text-hi); border-left-color: var(--vray); }
+  .nav-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; background: var(--vray); }
   .nav-count {
     margin-left: auto;
     font-size: 9px;
@@ -135,11 +157,10 @@
     text-align: center;
   }
   .sidebar-divider { height: 1px; background: var(--border); margin: 8px 0; }
+  .stat-line { font-family:'IBM Plex Mono',monospace; font-size:10px; margin-bottom:3px; padding: 0 14px; }
 
-  /* ── MAIN ── */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-  /* ── TOOLBAR ── */
   .toolbar {
     background: var(--bg2);
     border-bottom: 1px solid var(--border);
@@ -150,15 +171,10 @@
     height: 42px;
     flex-shrink: 0;
   }
-  .shader-id {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    font-weight: 500;
-  }
-  .shader-id.rs   { color: var(--rs); }
+  .shader-id { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; }
   .shader-id.vray { color: var(--vray); }
+  .shader-id.rs   { color: var(--rs); }
   .arrow { color: var(--text-dim); font-size: 14px; }
-
   .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
   .search-wrap { position: relative; }
@@ -191,18 +207,15 @@
     transition: all 0.12s;
   }
   .filter-btn:hover { border-color: var(--border2); color: var(--text); }
-  .filter-btn.active { color: var(--text-hi); border-color: var(--border2); background: var(--bg2); }
-  .filter-btn.f-invert.active { color: var(--yellow); }
-  .filter-btn.f-manual.active { color: var(--purple); }
-  .filter-btn.f-na.active     { color: var(--red); }
+  .filter-btn.f-invert.active { color: var(--yellow); border-color: var(--border2); background: var(--bg2); }
+  .filter-btn.f-manual.active { color: var(--purple); border-color: var(--border2); background: var(--bg2); }
+  .filter-btn.f-na.active     { color: var(--red);    border-color: var(--border2); background: var(--bg2); }
 
-  /* ── TABLE AREA ── */
   .table-wrap { flex: 1; overflow-y: auto; }
   .table-wrap::-webkit-scrollbar { width: 5px; }
   .table-wrap::-webkit-scrollbar-track { background: var(--bg2); }
   .table-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
-  /* ── SECTIONS ── */
   .section { border-bottom: 1px solid var(--border); }
   .section-hdr {
     display: flex;
@@ -236,9 +249,7 @@
   .section.collapsed .chevron { transform: rotate(-90deg); }
   .section.collapsed .section-body { display: none; }
 
-  /* ── TABLE ── */
   .param-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-
   .param-table thead th {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 9px;
@@ -254,22 +265,24 @@
     top: 0;
     z-index: 1;
   }
-  .th-rs   { color: var(--rs)   !important; width: 20%; }
-  .th-type { width: 8%; }
-  .th-vray { color: var(--vray) !important; width: 20%; }
+  .th-src   { width: 20%; }
+  .th-type  { width: 7%; }
+  .th-tgt   { width: 21%; }
   .th-notes { width: 52%; }
 
   .param-row { border-bottom: 1px solid var(--border); transition: background 0.1s; }
   .param-row:hover { background: var(--bg3); }
   .param-row.hidden { display: none; }
-  .param-table td { padding: 9px 16px; vertical-align: top; line-height: 1.55; overflow: hidden; }
+  .param-table td { padding: 8px 16px; vertical-align: top; line-height: 1.55; overflow: hidden; }
 
-  .col-rs    { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--rs); font-weight: 500; }
-  .col-type  { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); }
-  .col-vray  { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--vray); font-weight: 500; }
+  .col-src  { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; }
+  .col-type { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); }
+  .col-tgt  { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; }
   .col-notes { font-size: 11.5px; color: var(--text); line-height: 1.6; }
 
-  /* ── TAGS ── */
+  .vray-color { color: var(--vray); }
+  .rs-color   { color: var(--rs); }
+
   .tag {
     display: inline-block;
     font-family: 'IBM Plex Mono', monospace;
@@ -288,7 +301,6 @@
   .tag-manual { background: #2a1f3d; color: var(--purple); }
   .tag-na     { background: #2d1a1a; color: var(--red); }
 
-  /* formula callout */
   .formula {
     display: inline-block;
     font-family: 'IBM Plex Mono', monospace;
@@ -301,62 +313,53 @@
     color: var(--yellow);
   }
 
-  /* ── LEGEND ── */
   .legend {
     display: flex;
     align-items: center;
     gap: 18px;
-    padding: 8px 20px;
+    padding: 7px 20px;
     background: var(--bg2);
     border-top: 1px solid var(--border);
     flex-shrink: 0;
+    flex-wrap: wrap;
   }
   .legend-lbl { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
   .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
-
-  /* ── EMPTY STATE ── */
-  .empty {
-    padding: 48px 24px;
-    text-align: center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--text-dim);
-  }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-logo"><span class="rs">RS</span> → <span class="vr">VRay</span> &nbsp;Material Reference</div>
-  <div class="phase-badge">Phase 1 · Standard Material</div>
-  <div class="header-right">v0.2 &nbsp;·&nbsp; Industrial Design Focus</div>
+  <div class="header-logo"><span class="vr">VRay</span> ↔ <span class="rs">RS</span> &nbsp;Material Reference</div>
+  <div class="dir-toggle">
+    <button class="dir-btn d-vr active" id="btn-vr" onclick="setDir('vr')">VRayMtl → RS Standard</button>
+    <div class="dir-sep"></div>
+    <button class="dir-btn d-rs" id="btn-rs" onclick="setDir('rs')">RS Standard → VRayMtl</button>
+  </div>
+  <div class="phase-badge">Phase 1 · Docs-Verified</div>
+  <div class="header-right">v0.4</div>
 </div>
 
 <div class="body">
-
-  <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-label">Shader Sections</div>
+    <div class="sidebar-label">Sections</div>
     <div id="nav-links"></div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-label">Stats</div>
-    <div style="padding:8px 14px 14px;">
-      <div id="stat-total"  style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);margin-bottom:4px;">— params total</div>
-      <div id="stat-exact"  style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green);margin-bottom:2px;">— exact</div>
-      <div id="stat-invert" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--yellow);margin-bottom:2px;">— invert (1−x)</div>
-      <div id="stat-manual" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--purple);margin-bottom:2px;">— manual</div>
-      <div id="stat-na"     style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--red);">— no equivalent</div>
+    <div style="padding:4px 0 14px;">
+      <div class="stat-line" id="s-total"  style="color:var(--text-dim);">—</div>
+      <div class="stat-line" id="s-exact"  style="color:var(--green);">—</div>
+      <div class="stat-line" id="s-invert" style="color:var(--yellow);">—</div>
+      <div class="stat-line" id="s-manual" style="color:var(--purple);">—</div>
+      <div class="stat-line" id="s-na"     style="color:var(--red);">—</div>
     </div>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
-
-    <!-- TOOLBAR -->
     <div class="toolbar">
-      <span class="shader-id rs">RS Standard Material</span>
+      <span class="shader-id vray" id="lbl-src">VRayMtl</span>
       <span class="arrow">→</span>
-      <span class="shader-id vray">VRayMtl</span>
+      <span class="shader-id rs"   id="lbl-tgt">RS Standard Material</span>
       <div class="toolbar-right">
         <div class="search-wrap">
           <span class="search-icon">⌕</span>
@@ -367,249 +370,333 @@
         <button class="filter-btn f-na"     id="f-na"     onclick="toggleFilter('na')">No Equiv</button>
       </div>
     </div>
-
     <div class="table-wrap" id="table-wrap"></div>
-
     <div class="legend">
       <span class="legend-lbl">Key:</span>
-      <div class="legend-item"><span class="tag tag-exact">Exact</span> Direct 1:1 mapping</div>
-      <div class="legend-item"><span class="tag tag-invert">Invert</span> Roughness ↔ Glossiness (1−x)</div>
-      <div class="legend-item"><span class="tag tag-manual">Manual</span> Requires workflow change</div>
-      <div class="legend-item"><span class="tag tag-na">N/A</span> No clean VRay equivalent</div>
+      <div class="legend-item"><span class="tag tag-exact">Exact</span>Direct 1:1 mapping</div>
+      <div class="legend-item"><span class="tag tag-invert">Invert</span>Roughness ↔ Glossiness (1−x)</div>
+      <div class="legend-item"><span class="tag tag-manual">Manual</span>Requires workflow change</div>
+      <div class="legend-item"><span class="tag tag-na">N/A</span>No equivalent in target renderer</div>
     </div>
-
   </div>
 </div>
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
-// SHADER MAP — RS Standard Material → VRayMtl
-// This data structure is the source of truth for Phase 1.
-// Phase 2 will extract this into shader_map.json and drive a Python converter.
+// MAPPING DATA v0.4 — sourced directly from:
+//   docs/vray/vray_vraymtl.md  (Chaos V-Ray for Maya documentation)
+//   docs/redshift/redshift_standard_material.md  (Maxon RS documentation)
 //
-// tag values:
-//   exact  — value maps directly, no math needed
-//   invert — glossiness/roughness inversion: vray_val = 1 - rs_val
-//   manual — structural difference; requires artist judgment or extra nodes
-//   na     — no clean equivalent in VRayMtl; flag for Phase 2 handling
+// VRayMtl is the authoritative starting point.
+// Rows with vray='(no equivalent)' are RS-only parameters — visible in RS→VRay mode.
+// tag: exact | invert | manual | na
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SECTIONS = [
 
-  { id:'diffuse', title:'Base / Diffuse', rows:[
-    { rs:'Base Color',         type:'color', vray:'Diffuse Color',
+  { id:'diffuse', title:'Diffuse', rows:[
+    { vray:'Diffuse Color',       type:'color', rs:'Base Color',
       tag:'exact',
-      notes:'Direct equivalent. In VRay, diffuse contribution is also dimmed by the Reflection layer above it — same physical behaviour as RS.' },
-    { rs:'Base Weight',        type:'float', vray:'Diffuse Amount',
+      notes:'Direct equivalent. Both represent surface albedo for dielectrics and surface color for metals. Diffuse is dimmed by the reflection layer above via energy conservation in both renderers.' },
+    { vray:'Amount (Diffuse)',    type:'float', rs:'Base Weight',
       tag:'exact',
-      notes:'Global multiplier on the diffuse color. Maps directly. Range 0–1 in both.' },
-    { rs:'Metalness',          type:'float', vray:'Metalness',
+      notes:'Global multiplier on diffuse/base color. 0–1 in both. Direct mapping.' },
+    { vray:'Metalness',           type:'float', rs:'Metalness',
       tag:'exact',
-      notes:'0–1 range, direct mapping. Both treat intermediate values as non-physical; keep at 0 or 1 for production.' },
-    { rs:'Diffuse Roughness',  type:'float', vray:'Roughness Amount (Diffuse)',
+      notes:'0–1 range. Both treat intermediate values as non-physical — use 0 (dielectric) or 1 (metal) in production. In both, metalness derives reflectance from the base/diffuse color.' },
+    { vray:'Roughness Amount',    type:'float', rs:'Diffuse Roughness',
       tag:'exact',
-      notes:'Both implement Oren-Nayar retroreflection. Higher values = more matte/retroreflective. Direct mapping.' },
+      notes:'Both implement Oren-Nayar diffuse retroreflection. Higher values = more matte, retroreflective. Direct mapping.' },
+    { vray:'Opacity Map',         type:'tex',   rs:'Opacity',
+      tag:'exact',
+      notes:'White=opaque, black=transparent in both. VRay adds Opacity Mode (Clip / Stochastic). RS Standard Material opacity is always filtered/stochastic.' },
+    { vray:'Opacity Mode',        type:'enum',  rs:'(RS Sprite node for Clip)',
+      tag:'manual',
+      notes:'VRay Clip mode = hard cutout at 50% threshold. RS equivalent is the separate RS Sprite node — it is not a flag on the Standard Material. RS Standard Material opacity is always stochastic.' },
+    { vray:'Self-Illumination',   type:'color', rs:'Emission Color',
+      tag:'exact',
+      notes:'Direct equivalent. Both support texture connections.' },
+    { vray:'Self-Illumination GI', type:'bool', rs:'(RS emission always affects GI)',
+      tag:'na',
+      notes:'VRay toggle for whether self-illumination affects GI rays. RS emission always contributes to GI with no disable option. Converting RS→VRay: enable Self-Illumination GI to match default RS behavior.' },
+    { vray:'Compensate Exposure', type:'bool',  rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay-only. Adjusts emission intensity to compensate for VRayPhysicalCamera exposure settings. No RS equivalent — RS emission brightness is absolute.' },
+    { vray:'Double-Sided',        type:'bool',  rs:'(RS Object Tag)',
+      tag:'manual',
+      notes:'VRay shades back faces with the same material. In RS this is per-object in the RS Object Tag, not the material. Transfer this flag to the mesh Object Tag when converting.' },
   ]},
 
   { id:'reflection', title:'Reflection / Specular', rows:[
-    { rs:'Reflection Weight',    type:'float', vray:'Reflection Color (brightness)',
-      tag:'manual',
-      notes:'RS uses a dedicated weight float. VRay encodes intensity in the Reflection Color value. Workflow: set VRay Reflection Color to white, then use the color brightness as the effective weight. Alternatively enable "Use Roughness" mode and dial Reflection Color grey value to match RS weight.' },
-    { rs:'Reflection Color',     type:'color', vray:'Reflection Color',
+    { vray:'Reflection Color',    type:'color', rs:'Reflection Color',
       tag:'exact',
-      notes:'Both tint the reflection and simultaneously dim the diffuse below. Direct equivalent.' },
-    { rs:'Reflection Roughness', type:'float', vray:'Reflection Glossiness',
+      notes:'Both tint the reflection and simultaneously dim diffuse via energy conservation. For dielectrics keep white; for metals use the characteristic metal color.' },
+    { vray:'Amount (Reflection)', type:'float', rs:'Reflection Weight',
+      tag:'exact',
+      notes:'Direct multiplier on reflection strength. VRay: Amount. RS: Reflection Weight. Both 0–1. Direct mapping.' },
+    { vray:'Reflection Glossiness', type:'float', rs:'Reflection Roughness',
       tag:'invert',
-      notes:'RS: 0=mirror, 1=fully rough. VRay: 1=mirror, 0=fully rough. Formula below. Alternatively enable "Use Roughness" in VRayMtl to work directly in roughness space.' },
-    { rs:'IOR',                  type:'float', vray:'Fresnel IOR',
-      tag:'exact',
-      notes:'Enable "Use Fresnel" in VRayMtl. IOR values map 1:1. Common values: glass 1.5, water 1.33, skin 1.4, car paint clear coat 1.48.' },
-    { rs:'Fresnel Type (Artist/Physical)', type:'enum', vray:'Fresnel / Max Depth',
+      notes:'Opposite conventions. VRay: 1.0=mirror, lower=blurry. RS: 0.0=mirror, higher=blurry. Enable "Use Roughness" in VRayMtl to work in roughness space directly and skip the inversion.',
+      formula:'RS Roughness = 1 − VRay Glossiness' },
+    { vray:'Use Roughness',       type:'bool',  rs:'(RS always uses roughness)',
       tag:'manual',
-      notes:'RS "Artist" Fresnel uses a remapped response. VRay always uses physical Fresnel. Match by eye — Artist mode at weight 0.5 is roughly equivalent to VRay physical Fresnel at IOR 2.0.' },
-    { rs:'Anisotropy',           type:'float', vray:'Anisotropy',
+      notes:'VRay toggle to flip Reflection Glossiness to roughness convention. RS Standard Material always works in roughness space. If Use Roughness is OFF in VRay, apply the inversion formula. If ON, values transfer directly.' },
+    { vray:'Use Fresnel',         type:'bool',  rs:'Fresnel Type (Schlick/Scientific)',
+      tag:'manual',
+      notes:'VRay requires a checkbox to enable Fresnel. RS always uses Fresnel — it cannot be disabled, only the model can be switched (Schlick = fast approximation, Scientific = full IOR-based). Approximating VRay with Use Fresnel off: set a high IOR in RS and adjust Reflection Weight manually.' },
+    { vray:'Fresnel IOR',         type:'float', rs:'IOR',
       tag:'exact',
-      notes:'Both use −1 to +1 range. Direct mapping. 0=isotropic, ±1=max anisotropy.' },
-    { rs:'Anisotropy Rotation',  type:'float', vray:'Anisotropy Rotation',
+      notes:'Direct equivalent when VRay Use Fresnel is on and RS Fresnel Type is Scientific. Water=1.33, glass=1.5, diamond=2.4. Note: RS uses one IOR for both Fresnel reflection and refraction. VRay can decouple these via Lock Fresnel IOR To Refraction IOR.' },
+    { vray:'BRDF Type',           type:'enum',  rs:'(GGX only)',
+      tag:'manual',
+      notes:'VRay offers Phong, Blinn, Ward, GGX. RS Standard Material uses GGX exclusively. When converting Phong/Blinn/Ward from VRay→RS, switch to GGX and tune Roughness to approximate the original highlight shape.' },
+    { vray:'GGX Tail Falloff',    type:'float', rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay-only. Controls the GGX highlight-to-non-highlight transition. RS uses fixed GGX tail behavior. Leave at VRay default (2.0) for cross-renderer use.' },
+    { vray:'Anisotropy',          type:'float', rs:'Anisotropy',
+      tag:'exact',
+      notes:'Both: 0=isotropic, ±values=elongated highlight. VRay range −0.999 to 0.999, RS −1 to +1. Direct mapping.' },
+    { vray:'Anisotropy Rotation', type:'float', rs:'Anisotropy Rotation',
       tag:'exact',
       notes:'Both use 0–1 normalized range (0=0°, 1=360°). Direct mapping.' },
-    { rs:'Anisotropy Channel',   type:'enum',  vray:'Local Axis (UV channel)',
+    { vray:'UV Vectors / Local Axis', type:'enum', rs:'Anisotropy Orientation',
       tag:'manual',
-      notes:'RS selects UV channel for anisotropy direction. VRay uses Local Axis (U/V/W) or a map. Remap UV channel index to corresponding axis.' },
-    { rs:'BRDF Type (GGX)',      type:'enum',  vray:'BRDF Type → GGX',
+      notes:'Both support UV-based and world-space anisotropy derivation. VRay: Local Axis (X/Y/Z) or UVW generator. RS: UV, World Space, or Reference Vector. Map UV→UV, world-space→world-space. Specific axis values require manual re-entry.' },
+    { vray:'Max Depth (Reflection)', type:'int', rs:'Max Trace Depth (Reflection)',
       tag:'exact',
-      notes:'RS Standard Material defaults to GGX. Set VRayMtl BRDF Type to GGX. The VRay "GGX Tail Falloff" parameter has no RS equivalent — leave at default (2.0).' },
-    { rs:'Reflection Depth',     type:'int',   vray:'Max Depth (Reflection)',
-      tag:'exact',
-      notes:'Maximum reflection ray bounces. Direct equivalent. RS default 8, VRay default 5 — align both to your scene standard.' },
-    { rs:'Affect Alpha',         type:'bool',  vray:'Affect Alpha (Reflection)',
-      tag:'exact',
-      notes:'Controls whether reflections write to the alpha channel. Direct equivalent.' },
-  ]},
-
-  { id:'thinfilm', title:'Thin Film Interference', rows:[
-    { rs:'Thin Film Weight',     type:'float', vray:'Thin Film Amount',
-      tag:'manual',
-      notes:'RS uses a continuous weight float. VRay has a checkbox enable + Amount float. Enable Thin Film in VRay, then map RS weight to the Amount value.' },
-    { rs:'Thin Film Thickness',  type:'float', vray:'Min Thickness (nm)',
-      tag:'exact',
-      notes:'Both in nanometers. Typical range 300–800nm for visible iridescence. Direct value mapping.' },
-    { rs:'Thin Film IOR',        type:'float', vray:'Thin Film IOR',
-      tag:'exact',
-      notes:'Direct equivalent. Standard value 1.5 (oil film on water).' },
-  ]},
-
-  { id:'transmission', title:'Transmission / Refraction', rows:[
-    { rs:'Transmission Weight',  type:'float', vray:'Refraction Color (brightness)',
-      tag:'manual',
-      notes:'RS uses a weight float. VRay uses Refraction Color brightness. Set Refraction Color to white and drive intensity via the color\'s V value, or use the Amount multiplier if available in your VRay version.' },
-    { rs:'Transmission Color',   type:'color', vray:'Fog Color',
-      tag:'manual',
-      notes:'RS tints transmitted light directly. VRay Fog Color is depth-dependent Beer-Lambert absorption — result changes with geometry thickness. Set Fog Multiplier and Fog Depth to match RS visual result at your typical object scale.' },
-    { rs:'IOR (Transmission)',   type:'float', vray:'Refraction IOR',
-      tag:'exact',
-      notes:'Direct equivalent. Same scale. Link Fresnel IOR and Refraction IOR if you want single-IOR control, as in RS.' },
-    { rs:'Abbe Number',          type:'float', vray:'Dispersion Abbe',
-      tag:'exact',
-      notes:'Direct equivalent. Enable Dispersion in VRay first. High values = low dispersion. Typical glass: 50–65.' },
-    { rs:'Thin Walled',          type:'bool',  vray:'Thin-Walled',
-      tag:'exact',
-      notes:'Both disable volumetrics and treat the surface as an infinitely thin shell (no refraction offset, no fog depth). Direct equivalent.' },
-    { rs:'Transmission Depth',   type:'float', vray:'Fog Depth (cm)',
-      tag:'manual',
-      notes:'RS Depth defines scatter mean free path in scene units. VRay Fog Depth is the thickness over which Fog Color is fully absorbed. Inverse relationship — increase VRay Fog Depth as RS Depth increases. Match visually per object.' },
-    { rs:'Transmission Scatter', type:'color', vray:'Fog Color (secondary)',
-      tag:'manual',
-      notes:'RS has a dedicated forward-scatter color for translucent volumes. VRay blends via Fog Color + SSS Translucency. For dense participating media, switch to VRayFastSSS2 or enable the SSS/Translucency rollout.' },
-    { rs:'Transmission Scatter Phase', type:'float', vray:'(no direct equivalent)',
+      notes:'Maximum reflection ray bounces. VRay: Reflection Advanced. RS: Optimizations > Reflection > enable Trace Depth Override. Direct equivalent.' },
+    { vray:'Dim Distance',        type:'float', rs:'(no equivalent)',
       tag:'na',
-      notes:'RS Henyey-Greenstein phase function coefficient (−1=back-scatter, 0=isotropic, 1=forward). VRayMtl has no phase control — it uses isotropic scattering only. For anisotropic volumetric scattering, use VRayVolumeMtl or a RS-to-VRay scene-level workaround.' },
-    { rs:'Refraction Depth',     type:'int',   vray:'Max Depth (Refraction)',
-      tag:'exact',
-      notes:'Max refraction ray bounces. Direct equivalent. Match RS and VRay values.' },
+      notes:'VRay-only. Stops tracing reflection rays beyond a world-space distance. No RS equivalent.' },
+    { vray:'Dim Fall Off',        type:'float', rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay-only. Falloff radius for Dim Distance. No RS equivalent.' },
+    { vray:'Reflect On Back Side', type:'bool', rs:'(RS Object Tag / double-sided geo)',
+      tag:'manual',
+      notes:'VRay per-material back-face reflection toggle. RS handles this at the object level via the RS Object Tag or double-sided geometry.' },
+    { vray:'Affect Channels',     type:'enum',  rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay-only (Color Only / Color+Alpha / All Channels). Controls which render channels reflections write into. No RS material-level equivalent — handled at the RS render pass level.' },
   ]},
 
-  { id:'sss', title:'Subsurface Scattering', rows:[
-    { rs:'Subsurface Weight',    type:'float', vray:'Translucency Amount (SSS)',
+  { id:'thinfilm', title:'Thin Film', rows:[
+    { vray:'Enable Thin Film',    type:'bool',  rs:'Thin Film Weight',
       tag:'manual',
-      notes:'VRay SSS lives in the Refraction rollout under Translucency. First set Translucency Type to "Hybrid model (SSS)" — then Translucency Color weight is the functional equivalent of RS Subsurface Weight.' },
-    { rs:'Subsurface Color',     type:'color', vray:'SSS Color',
+      notes:'VRay: checkbox (on/off). RS: float weight (0–1). Converting VRay enabled=RS weight 1.0, disabled=0.0. RS allows partial blend which has no VRay equivalent.' },
+    { vray:'Min Thickness (nm)',  type:'float', rs:'Thin Film Thickness',
       tag:'exact',
-      notes:'Direct equivalent. Drives the scattered color inside the volume.' },
-    { rs:'Subsurface Radius',    type:'color', vray:'Scatter Radius (RGB)',
-      tag:'exact',
-      notes:'Both use RGB channels for per-wavelength mean free path. VRay in cm — match your RS scene unit scale. Skin typical: R=1.0, G=0.3, B=0.2 cm.' },
-    { rs:'Subsurface Scale',     type:'float', vray:'Scatter Multiplier',
-      tag:'exact',
-      notes:'Global scale on scatter radius. Direct equivalent.' },
-    { rs:'Subsurface Anisotropy', type:'float', vray:'(phase not exposed in VRayMtl)',
+      notes:'Both in nanometers. When no Thickness Blend map is used in VRay, Min Thickness is the only value — maps directly to RS Thin Film Thickness. Typical iridescence range: 300–800nm.' },
+    { vray:'Max Thickness (nm)',  type:'float', rs:'(no equivalent)',
       tag:'na',
-      notes:'RS exposes Henyey-Greenstein anisotropy for the SSS lobe. VRayMtl SSS uses isotropic scattering only. For production skin with phase control, use VRayFastSSS2 (which has its own scatter phase parameter).' },
-    { rs:'SSS Mode (Random Walk)', type:'enum', vray:'Translucency Type',
+      notes:'VRay-only. Upper thickness bound when a Thickness Blend map is connected. RS has a single thickness value — bake or average the VRay Min/Max range, or drive RS Thin Film Thickness with a texture map directly.' },
+    { vray:'Thickness Blend',     type:'tex',   rs:'(map directly to Thin Film Thickness)',
       tag:'manual',
-      notes:'RS Random Walk = most physically accurate. VRay equivalent: set Translucency Type to "Hybrid model (SSS)" + enable Brute Force GI with ≥16 bounces for deep scatter. For speed without accuracy, "Simple (no MIS)" is faster but misses deep-scatter structure. VRayFastSSS2 is the recommended dedicated SSS shader.' },
+      notes:'VRay uses Thickness Blend to interpolate between Min and Max Thickness across the surface. RS accepts a texture on Thin Film Thickness directly — connect the same map, but the Min/Max remapping must be baked into the texture or handled via a RS color correction node upstream.' },
+    { vray:'IOR (Thin Film)',     type:'float', rs:'Thin Film IOR',
+      tag:'exact',
+      notes:'Direct equivalent. Both control the thin film refractive index. Typical value: 1.5 (oil film on water).' },
   ]},
 
   { id:'coat', title:'Clear Coat', rows:[
-    { rs:'Coat Weight',          type:'float', vray:'Coat Amount',
+    { vray:'Amount (Coat)',       type:'float', rs:'Coat Weight',
       tag:'exact',
-      notes:'0=no coat, 1=full coat. Direct equivalent.' },
-    { rs:'Coat Color',           type:'color', vray:'Coat Color',
+      notes:'Direct equivalent. 0=no coat, 1=full coat.' },
+    { vray:'Coat Color',          type:'color', rs:'Coat Color',
       tag:'exact',
-      notes:'Tints the coat layer. Note: in both RS and VRay this tints transmitted light through the coat but does NOT affect the specular highlight color (always white at normal incidence).' },
-    { rs:'Coat Roughness',       type:'float', vray:'Coat Glossiness',
+      notes:'Tints underlying layers (reflection, sheen, diffuse, refraction) but NOT the coat specular highlight (always white at normal incidence in both). Direct equivalent.' },
+    { vray:'Coat Glossiness',     type:'float', rs:'Coat Roughness',
       tag:'invert',
-      notes:'Roughness → Glossiness inversion. Formula below.' },
-    { rs:'Coat IOR',             type:'float', vray:'Coat IOR',
+      notes:'Opposite conventions. VRay: 1.0=glass-like, lower=blurry. RS: 0.0=glass-like, higher=blurry. Formula below.',
+      formula:'RS Coat Roughness = 1 − VRay Coat Glossiness' },
+    { vray:'IOR (Coat)',          type:'float', rs:'Coat IOR',
       tag:'exact',
-      notes:'Direct equivalent. Default 1.5 = typical clear coat.' },
-    { rs:'Coat Affect Color',    type:'float', vray:'Coat Darkening',
+      notes:'Direct equivalent. Default 1.5 = typical clear coat (acrylic lacquer).' },
+    { vray:'Darkening',           type:'float', rs:'Coat Affect Color',
       tag:'manual',
-      notes:'Both control how the coat layer absorbs and darkens the underlying layers. Similar intent but different parametrization — dial to visual match.' },
-    { rs:'Coat Normal',          type:'tex',   vray:'Coat Bump Map',
-      tag:'exact',
-      notes:'Both support an independent normal or bump map specifically for the coat layer.' },
-    { rs:'Coat Affect Roughness', type:'float', vray:'(no direct equivalent)',
+      notes:'Both control how the coat layer absorbs and darkens underlying layers (simulating lacquer depth). Similar intent, different scale and parametrization — match by visual result.' },
+    { vray:'Coat Anisotropy',     type:'float', rs:'(no equivalent)',
       tag:'na',
-      notes:'RS allows the coat layer to add roughness to the base layer below it (physically simulating micro-scratches under the coat). VRayMtl has no equivalent control — the coat and base roughness are fully independent.' },
+      notes:'VRay-only. Independent anisotropy for the coat highlight. RS coat layer is always isotropic regardless of base anisotropy.' },
+    { vray:'Coat Anisotropy Rotation', type:'float', rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay-only. Orientation of coat anisotropic highlight. No RS equivalent.' },
+    { vray:'Bump Map (Coat)',     type:'tex',   rs:'Coat Normal',
+      tag:'exact',
+      notes:'Both support an independent bump/normal map for the coat layer, separate from the base bump. Direct equivalent.' },
+    { vray:'Bump Map Type (Coat)', type:'enum', rs:'Normal Type (Coat)',
+      tag:'exact',
+      notes:'Both expose tangent/object/world-space normal map types for the coat. Direct mapping.' },
+    { vray:'Coat Bump Mult',      type:'float', rs:'(control via upstream map)',
+      tag:'manual',
+      notes:'VRay has an explicit coat bump multiplier. RS has no dedicated coat bump multiplier — control strength via the map level or an upstream RS color correction node.' },
+    { vray:'Lock Coat Bump to Base Bump', type:'bool', rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay-only. Forces base bump to override coat bump. RS always evaluates coat and base normals independently.' },
+    { vray:'(no equivalent)',     type:'—',     rs:'Coat Affect Roughness',
+      tag:'na',
+      notes:'RS-only. Controls how much the coat layer adds roughness to the underlying base — simulating micro-scratches under the coat. VRayMtl has no equivalent. Converting RS→VRay: approximate by manually increasing base Reflection Glossiness (lowering glossiness).' },
+  ]},
+
+  { id:'refraction', title:'Transmission / Refraction', rows:[
+    { vray:'Refraction Color',    type:'color', rs:'Transmission Color',
+      tag:'manual',
+      notes:'Both tint transmitted light. VRay Refraction Color encodes both amount (brightness) and tint simultaneously. RS separates them into Transmission Weight and Transmission Color. Converting VRay→RS: extract the Value channel of VRay Refraction Color → RS Transmission Weight; hue/saturation → RS Transmission Color.' },
+    { vray:'Amount (Refraction)', type:'float', rs:'Transmission Weight',
+      tag:'manual',
+      notes:'VRay encodes refraction intensity in Refraction Color brightness (no separate Amount in most VRay versions). RS has a dedicated Transmission Weight float. See Refraction Color note above.' },
+    { vray:'Refraction Glossiness', type:'float', rs:'(no direct equivalent)',
+      tag:'na',
+      notes:'VRay controls refraction blur independently from reflection blur. RS Standard Material has no separate refraction roughness slider — frosted/blurry refraction is not natively supported in the Standard Material. Use a separate RS scatter setup or consider VRayFastSSS2 for translucency.' },
+    { vray:'Refraction IOR',      type:'float', rs:'IOR (Transmission)',
+      tag:'exact',
+      notes:'Direct equivalent. Water=1.33, glass=1.5, diamond=2.4. Note: RS uses a single IOR for both Fresnel reflection strength and refraction bending. VRay can decouple these independently.' },
+    { vray:'Fog Color',           type:'color', rs:'Depth Color (Absorption)',
+      tag:'manual',
+      notes:'Both describe volumetric absorption color inside the material. VRay applies it via Beer-Lambert law over Fog Depth distance. RS uses Depth Color with Transmission Depth. Same concept, different unit conventions — match visually per object size.' },
+    { vray:'Depth (cm)',          type:'float', rs:'Transmission Depth',
+      tag:'manual',
+      notes:'Distance over which the absorption color is fully applied. VRay: Fog Depth in cm. RS: Transmission Depth in scene units. Match then tune visually.' },
+    { vray:'Affect Shadows',      type:'bool',  rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay-only. Casts colored transparent shadows based on refraction/fog color (fake caustics). RS has no per-material shadow color — accurate caustics require enabling caustics globally in RS render settings.' },
+    { vray:'Thin-Walled',         type:'bool',  rs:'Thin Walled',
+      tag:'exact',
+      notes:'Direct equivalent. Both treat the surface as an infinitely thin shell — no refraction offset, no volumetric absorption. Suitable for glass windows, soap bubbles, leaves.' },
+    { vray:'Dispersion',          type:'bool',  rs:'Abbe Number (0=disabled)',
+      tag:'manual',
+      notes:'VRay requires a Dispersion enable checkbox before the Abbe value takes effect. RS controls dispersion solely via the Abbe Number — 0 disables it. Converting: VRay Dispersion off=RS Abbe 0; Dispersion on=transfer the Abbe value directly.' },
+    { vray:'Dispersion Abbe',     type:'float', rs:'Abbe Number',
+      tag:'exact',
+      notes:'Direct equivalent. Lower=stronger dispersion (wider spectral spread). Glass typical: 50–65. Diamond: ~18.' },
+    { vray:'Max Depth (Refraction)', type:'int', rs:'Max Trace Depth (Refraction)',
+      tag:'exact',
+      notes:'Maximum refraction ray bounces. VRay: Refraction Advanced. RS: Optimizations > Refraction > enable Trace Depth Override. Direct equivalent.' },
+    { vray:'(no equivalent)',     type:'—',     rs:'Scatter Color',
+      tag:'na',
+      notes:'RS-only. Color of volumetric forward-scattering inside transmissive materials. VRayMtl has no separate scatter color — volumetric scattering color derives from Fog Color. For anisotropic volumetric scattering in VRay, use VRayVolumeMtl.' },
+    { vray:'(no equivalent)',     type:'—',     rs:'Scatter Anisotropy',
+      tag:'na',
+      notes:'RS-only. Henyey-Greenstein phase function coefficient for volumetric scattering directionality (+1=forward, −1=backward). VRayMtl uses isotropic scattering only. Use VRayVolumeMtl for phase control in VRay.' },
+  ]},
+
+  { id:'sss', title:'Translucency / SSS', rows:[
+    { vray:'Translucency Mode',   type:'enum',  rs:'Subsurface Mode',
+      tag:'manual',
+      notes:'VRay: None / Volumetric / SSS. RS: Point-Based Diffusion / Ray-Traced Diffusion / Random Walk. Not 1:1 enums. Closest: VRay SSS → RS Random Walk (most accurate, recommended). VRay Volumetric → RS Ray-Traced Diffusion. VRay None → RS Subsurface Weight 0. VRay SSS/Volumetric requires GI with ≥16 bounces.' },
+    { vray:'SSS Amount',          type:'float', rs:'Subsurface Weight',
+      tag:'exact',
+      notes:'Both blend between surface diffuse and SSS effect. 0=no SSS, 1=full SSS. Direct mapping.' },
+    { vray:'SSS Color',           type:'color', rs:'Subsurface Color',
+      tag:'exact',
+      notes:'Overall SSS tint color. Direct equivalent.' },
+    { vray:'Scatter Radius',      type:'color', rs:'Subsurface Radius',
+      tag:'exact',
+      notes:'Per-RGB-channel scatter distance. Both allow independent R/G/B for realistic skin. VRay in cm, RS in scene units — align unit conventions before transferring values.' },
+    { vray:'Scale (cm)',          type:'float', rs:'Subsurface Scale',
+      tag:'exact',
+      notes:'Global scale multiplier on scatter radius. Direct equivalent.' },
+    { vray:'Translucency Color',  type:'color', rs:'(blend into Subsurface Color)',
+      tag:'manual',
+      notes:'VRay additional tint on top of Fog Color specifically for the SSS effect. RS has no separate SSS tint layer — composite VRay Fog Color × Translucency Color and map the result to RS Subsurface Color.' },
+    { vray:'Illumination Method', type:'enum',  rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay Volumetric mode: Uniform (skin) or Directional (scatters toward light source). RS has no equivalent per-material illumination method — RS Random Walk handles scattering directionality physically without an artist switch.' },
   ]},
 
   { id:'sheen', title:'Sheen', rows:[
-    { rs:'Sheen Weight',         type:'float', vray:'Sheen Amount',
+    { vray:'Amount (Sheen)',      type:'float', rs:'Sheen Weight',
       tag:'exact',
-      notes:'Direct equivalent. Controls sheen lobe intensity.' },
-    { rs:'Sheen Color',          type:'color', vray:'Sheen Color',
+      notes:'Direct equivalent. Controls sheen/velvet layer intensity.' },
+    { vray:'Sheen Color',         type:'color', rs:'Sheen Color',
       tag:'exact',
       notes:'Direct equivalent.' },
-    { rs:'Sheen Roughness',      type:'float', vray:'Sheen Glossiness',
+    { vray:'Sheen Glossiness',    type:'float', rs:'Sheen Roughness',
       tag:'invert',
-      notes:'Invert formula applies. Lower RS roughness = higher VRay glossiness = tighter sheen highlight.' },
+      notes:'Opposite conventions. VRay: 1.0=all light reaches diffuse (no sheen), lower=glossier. RS: 0=tightest sheen, higher=more diffuse. Formula below.',
+      formula:'RS Sheen Roughness = 1 − VRay Sheen Glossiness' },
   ]},
 
-  { id:'emission', title:'Emission / Self-Illumination', rows:[
-    { rs:'Emission Color',       type:'color', vray:'Self-Illumination Color',
+  { id:'bump', title:'Bump / Normal / Displacement', rows:[
+    { vray:'Map Type',            type:'enum',  rs:'Normal Type',
       tag:'exact',
-      notes:'Direct equivalent. Supports texture maps in both.' },
-    { rs:'Emission Weight',      type:'float', vray:'Self-Illumination Amount',
+      notes:'Both expose: Bump Map (greyscale), Normal map in tangent space, Normal map in object space, Normal map in world space. Direct mapping for all standard types. VRay additionally has Screen Space and Explicit Normal — no RS equivalents for those two.' },
+    { vray:'Map (Bump)',          type:'tex',   rs:'Bump Map',
       tag:'exact',
-      notes:'Multiplier on emission color. Direct equivalent.' },
-    { rs:'GI Ray Multiplier',    type:'float', vray:'Self-Illumination GI (checkbox)',
+      notes:'Direct texture connection. Verify flip-R/flip-G channel orientation between bakers — C4D/RS and Maya baking conventions may differ for tangent-space normals.' },
+    { vray:'Bump Mult',           type:'float', rs:'(control via upstream map)',
       tag:'manual',
-      notes:'RS provides per-ray-type multipliers (diffuse, reflection, refraction GI). VRay has a simple enable/disable checkbox for GI contribution. For mesh light behavior (direct + indirect), use a VRayLightMtl instead of VRayMtl emission — it exposes full multiplier and direct illumination controls.' },
-    { rs:'Emission DoubleSided', type:'bool',  vray:'(compensate with two-sided geo)',
+      notes:'VRay explicit bump multiplier. RS has no dedicated Bump Mult — control strength via the map level or an upstream RS color correction node.' },
+    { vray:'Bump Delta Scale',    type:'float', rs:'(no equivalent)',
       tag:'na',
-      notes:'RS can emit from both faces of a surface independently. VRayMtl Self-Illumination follows surface normals — back faces do not emit. Use VRayLightMtl with a Two-Sided option, or duplicate geometry with flipped normals.' },
+      notes:'VRay-only. Sharpens or blurs the bump effect independently of the map. Greyscale bump only. No RS equivalent.' },
+    { vray:'Resolution-Independent Bump', type:'bool', rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay-only. Ensures consistent bump appearance regardless of camera distance or render resolution. No RS equivalent.' },
+    { vray:'(VRayDisplacementMod)', type:'tex', rs:'Displacement',
+      tag:'manual',
+      notes:'RS Displacement is a material-level slot in the Standard Material. VRay displacement is a separate VRayDisplacementMod modifier applied to the mesh — it is not part of VRayMtl. Converting RS→VRay: create a VRayDisplacementMod on the mesh and transfer the map and amount values. RS midpoint 0.5 = VRay shift 0.0.' },
   ]},
 
-  { id:'geometry', title:'Geometry / Surface', rows:[
-    { rs:'Bump Map',             type:'tex',   vray:'Bump Map',
-      tag:'exact',
-      notes:'Both support greyscale bump and tangent-space normal maps. Connect via VRayBumpMtl node or directly in the Bump Map slot.' },
-    { rs:'Bump Height',          type:'float', vray:'Bump Multiplier',
+  { id:'advanced', title:'Advanced / Options', rows:[
+    { vray:'Cutoff Threshold',    type:'float', rs:'(render-level setting)',
       tag:'manual',
-      notes:'RS Bump Height is in scene units. VRay Bump Multiplier is a dimensionless scale. Dial to match visual result — no direct formula.' },
-    { rs:'Normal Type (Tangent/Object/World)', type:'enum', vray:'Map Type',
-      tag:'exact',
-      notes:'Tangent/Object/World space options exist in both. Tangent space is the default and most common — direct match. Ensure "Flip Red" / "Flip Green" channel settings match your normal map baking convention (Maya vs C4D may differ — test with a checker).' },
-    { rs:'Opacity',              type:'tex',   vray:'Opacity Map',
-      tag:'exact',
-      notes:'White=opaque, black=transparent in both. VRay adds Opacity Mode: Stochastic (physically filtered, use for glass-like opacity) vs Clip (fast cutout, equivalent to RS Sprite Node behavior).' },
-    { rs:'Displacement',         type:'tex',   vray:'Displacement Map (VRayDisplacementMod)',
-      tag:'manual',
-      notes:'RS displacement is per-material on the shader. VRay displacement is applied via a VRayDisplacementMod modifier on the mesh — it is not part of the material. Transfer the texture, then add the modifier manually. Match displacement amount and midpoint values (RS default midpoint 0.5 = VRay Shift 0.0).' },
-    { rs:'Displacement Height',  type:'float', vray:'Amount (VRayDisplacementMod)',
-      tag:'manual',
-      notes:'Scene-unit displacement height. VRay Amount is also in scene units — values should transfer, but verify against RS Displacement Multiplier if used.' },
-    { rs:'Displacement Midpoint', type:'float', vray:'Shift (VRayDisplacementMod)',
-      tag:'manual',
-      notes:'RS Midpoint 0.5 = zero displacement at grey. VRay Shift 0.0 = zero displacement at grey. Formula: VRay Shift = (RS Midpoint − 0.5) × 2.' },
-  ]},
-
-  { id:'advanced', title:'Advanced / Ray Visibility', rows:[
-    { rs:'Diffuse Contribution',  type:'float', vray:'(GI multiplier per pass)',
-      tag:'manual',
-      notes:'RS allows per-channel ray visibility multipliers. In VRay these are set at the object level (Object Properties > Visibility overrides), not the material level. Transfer values to the mesh\'s VRay Properties.' },
-    { rs:'Reflection Contribution', type:'float', vray:'(Object Properties)',
-      tag:'manual',
-      notes:'Same as above — object-level Visible in Reflections / Visibility override. Not material-level in VRay.' },
-    { rs:'Shadow Contribution',   type:'float', vray:'(Object Properties)',
-      tag:'manual',
-      notes:'Object-level in VRay. Set in VRay Object Properties > Shadow Matte or Receive Shadows.' },
-    { rs:'Caustics',              type:'bool',  vray:'Caustics (Object Properties)',
-      tag:'exact',
-      notes:'Both control caustic generation. VRay sets this at the object level in VRay Properties. Direct equivalent in intent.' },
-    { rs:'Matte Shadow / Shadow Catcher', type:'bool', vray:'VRayShadowCatcherMtl',
-      tag:'manual',
-      notes:'RS has a Shadow Catcher mode on Standard Material. VRay uses a dedicated VRayShadowCatcherMtl — it is not a flag on VRayMtl. Replace the material entirely.' },
+      notes:'VRay per-material threshold below which reflection/refraction rays are not traced. RS equivalent is the global Unified Sampling threshold in render settings — cannot be set per material in RS.' },
+    { vray:'Shading Model (V-Ray / OpenPBR)', type:'enum', rs:'(no equivalent)',
+      tag:'na',
+      notes:'VRay allows switching between V-Ray and OpenPBR shading models per material (renames several parameters). RS Standard Material uses a fixed PBR model. Use V-Ray shading model for cleanest RS mapping — OpenPBR parameter names will not match.' },
+    { vray:'(no equivalent)',     type:'—',     rs:'Ray Type Intensity Multipliers',
+      tag:'na',
+      notes:'RS-only. Per-component (Diffuse/Reflection/Transmission/Sheen/Coat) multipliers per ray type (Primary/Reflection/Refraction/GI/Shadow). VRayMtl has no material-level ray type control — set equivalent visibility overrides at the object level via VRay Object Properties.' },
   ]},
 
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RENDER & INTERACTION
+// APP STATE & RENDERING
 // ─────────────────────────────────────────────────────────────────────────────
 
+let dir           = 'vr';   // 'vr' = VRay→RS, 'rs' = RS→VRay
 let activeFilters = new Set();
+
+function setDir(d) {
+  dir = d;
+  document.getElementById('btn-vr').classList.toggle('active', d === 'vr');
+  document.getElementById('btn-rs').classList.toggle('active', d === 'rs');
+
+  const srcColor = d === 'vr' ? 'var(--vray)' : 'var(--rs)';
+  const tgtColor = d === 'vr' ? 'var(--rs)'   : 'var(--vray)';
+  const srcLabel = d === 'vr' ? 'VRayMtl'     : 'RS Standard Material';
+  const tgtLabel = d === 'vr' ? 'RS Standard Material' : 'VRayMtl';
+  const srcThLabel = d === 'vr' ? 'VRay Parameter' : 'RS Parameter';
+  const tgtThLabel = d === 'vr' ? 'RS Equivalent'  : 'VRay Equivalent';
+
+  document.querySelectorAll('.nav-dot').forEach(el => el.style.background = srcColor);
+  document.querySelectorAll('.nav-btn.active').forEach(el => el.style.borderLeftColor = srcColor);
+
+  const lSrc = document.getElementById('lbl-src');
+  const lTgt = document.getElementById('lbl-tgt');
+  lSrc.textContent = srcLabel;
+  lSrc.className = 'shader-id ' + (d === 'vr' ? 'vray' : 'rs');
+  lTgt.textContent = tgtLabel;
+  lTgt.className = 'shader-id ' + (d === 'vr' ? 'rs' : 'vray');
+
+  document.querySelectorAll('.th-src').forEach(th => { th.style.color = srcColor; th.textContent = srcThLabel; });
+  document.querySelectorAll('.th-tgt').forEach(th => { th.style.color = tgtColor; th.textContent = tgtThLabel; });
+
+  // Swap cell colors
+  document.querySelectorAll('.param-row').forEach(row => {
+    row.querySelector('.col-src').className = 'col-src ' + (d === 'vr' ? 'vray-color' : 'rs-color');
+    row.querySelector('.col-tgt').className = 'col-tgt ' + (d === 'vr' ? 'rs-color' : 'vray-color');
+    // Swap cell text content
+    const srcCell = row.querySelector('.col-src');
+    const tgtCell = row.querySelector('.col-tgt');
+    const tmp = srcCell.textContent;
+    srcCell.textContent = tgtCell.textContent;
+    tgtCell.textContent = tmp;
+  });
+
+  applyFilters();
+}
 
 function buildNav() {
   const nav = document.getElementById('nav-links');
@@ -625,19 +712,18 @@ function buildNav() {
 
 function buildStats() {
   const all = SECTIONS.flatMap(s => s.rows);
-  const count = tag => all.filter(r => r.tag === tag).length;
-  document.getElementById('stat-total').textContent  = `${all.length} params total`;
-  document.getElementById('stat-exact').textContent  = `${count('exact')} exact`;
-  document.getElementById('stat-invert').textContent = `${count('invert')} invert (1−x)`;
-  document.getElementById('stat-manual').textContent = `${count('manual')} manual`;
-  document.getElementById('stat-na').textContent     = `${count('na')} no equivalent`;
+  const c = tag => all.filter(r => r.tag === tag).length;
+  document.getElementById('s-total').textContent  = `${all.length} parameters total`;
+  document.getElementById('s-exact').textContent  = `${c('exact')} exact`;
+  document.getElementById('s-invert').textContent = `${c('invert')} invert (1−x)`;
+  document.getElementById('s-manual').textContent = `${c('manual')} manual`;
+  document.getElementById('s-na').textContent     = `${c('na')} no equivalent`;
 }
 
 function buildTable() {
   let html = '';
   SECTIONS.forEach(sec => {
-    html += `
-    <div class="section" id="sec-${sec.id}">
+    html += `<div class="section" id="sec-${sec.id}">
       <div class="section-hdr" onclick="toggleSection(this)">
         <span class="section-title">${sec.title}</span>
         <span class="section-count">${sec.rows.length}</span>
@@ -646,28 +732,23 @@ function buildTable() {
       <div class="section-body">
         <table class="param-table">
           <thead><tr>
-            <th class="th-rs">RS Parameter</th>
+            <th class="th-src" style="color:var(--vray)">VRay Parameter</th>
             <th class="th-type">Type</th>
-            <th class="th-vray">VRay Parameter</th>
+            <th class="th-tgt" style="color:var(--rs)">RS Equivalent</th>
             <th class="th-notes">Conversion Notes</th>
-          </tr></thead>
-          <tbody>`;
+          </tr></thead><tbody>`;
     sec.rows.forEach(row => {
-      // Build notes cell — append formula badge for invert rows
-      let noteHtml = `<span class="tag tag-${row.tag}">${row.tag}</span> ${row.notes}`;
-      if (row.tag === 'invert') {
-        noteHtml += `<br><span class="formula">VRay Glossiness = 1 − RS Roughness</span>`;
-      }
-      html += `
-          <tr class="param-row" data-tag="${row.tag}"
-              data-rs="${row.rs.toLowerCase()}"
-              data-vray="${row.vray.toLowerCase()}"
-              data-notes="${row.notes.toLowerCase()}">
-            <td class="col-rs">${row.rs}</td>
-            <td class="col-type">${row.type}</td>
-            <td class="col-vray">${row.vray}</td>
-            <td class="col-notes">${noteHtml}</td>
-          </tr>`;
+      let noteHtml = `<span class="tag tag-${row.tag}">${row.tag}</span>${row.notes}`;
+      if (row.formula) noteHtml += `<br><span class="formula">${row.formula}</span>`;
+      html += `<tr class="param-row" data-tag="${row.tag}"
+          data-vray="${row.vray.toLowerCase()}"
+          data-rs="${row.rs.toLowerCase()}"
+          data-notes="${row.notes.toLowerCase()}">
+        <td class="col-src vray-color">${row.vray}</td>
+        <td class="col-type">${row.type}</td>
+        <td class="col-tgt rs-color">${row.rs}</td>
+        <td class="col-notes">${noteHtml}</td>
+      </tr>`;
     });
     html += `</tbody></table></div></div>`;
   });
@@ -687,37 +768,39 @@ function toggleFilter(tag) {
 
 function applyFilters() {
   const q = document.getElementById('search').value.toLowerCase();
-  document.querySelectorAll('.param-row').forEach(row => {
-    const matchSearch = !q ||
-      row.dataset.rs.includes(q) ||
-      row.dataset.vray.includes(q) ||
-      row.dataset.notes.includes(q);
-    const matchFilter = activeFilters.size === 0 || activeFilters.has(row.dataset.tag);
-    row.classList.toggle('hidden', !(matchSearch && matchFilter));
-  });
-  // Show empty state per section
   document.querySelectorAll('.section').forEach(sec => {
-    const visible = sec.querySelectorAll('.param-row:not(.hidden)').length;
-    sec.style.display = visible === 0 ? 'none' : '';
+    let any = false;
+    sec.querySelectorAll('.param-row').forEach(row => {
+      const matchSearch = !q || row.dataset.vray.includes(q) || row.dataset.rs.includes(q) || row.dataset.notes.includes(q);
+      const matchFilter = activeFilters.size === 0 || activeFilters.has(row.dataset.tag);
+      const show = matchSearch && matchFilter;
+      row.classList.toggle('hidden', !show);
+      if (show) any = true;
+    });
+    sec.style.display = any ? '' : 'none';
   });
 }
 
 function scrollToSection(id) {
   const el = document.getElementById('sec-' + id);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-section="${id}"]`).classList.add('active');
+  }
 }
 
-// Highlight active section in nav on scroll
 function updateNavHighlight() {
   const wrap = document.getElementById('table-wrap');
-  const secs = document.querySelectorAll('.section');
   let current = null;
-  secs.forEach(sec => {
-    if (sec.offsetTop - wrap.scrollTop < 80) current = sec.id.replace('sec-', '');
+  document.querySelectorAll('.section').forEach(sec => {
+    if (sec.offsetTop - wrap.scrollTop < 60) current = sec.id.replace('sec-', '');
   });
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.section === current);
-  });
+  if (current) {
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.section === current);
+    });
+  }
 }
 
 document.getElementById('table-wrap').addEventListener('scroll', updateNavHighlight);
